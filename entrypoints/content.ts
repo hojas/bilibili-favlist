@@ -15,18 +15,62 @@ function getVideoInfo(): Video | null {
   if (!bvMatch) return null;
 
   const id = bvMatch[0];
-  const title = document.querySelector('h1.video-title')?.textContent?.trim() || '未知标题';
-  const cover = document.querySelector('.bili-video-card__pic img, .video-cover img')?.getAttribute('src') || '';
-  const author = document.querySelector('.up-name__text, .user-name')?.textContent?.trim() || '未知作者';
+  const title = document.querySelector('h1.video-title, h1.title')?.textContent?.trim() || '未知标题';
+  
+  let cover = '';
+  
+  const coverSelectors = [
+    '.bpx-player-video-wrap video',
+    '.video-cover img',
+    '.bili-video-card__pic img',
+    'meta[property="og:image"]',
+    'link[rel="image_src"]'
+  ];
+  
+  for (const selector of coverSelectors) {
+    const el = document.querySelector(selector);
+    if (el) {
+      if (el.tagName === 'VIDEO') {
+        cover = (el as HTMLVideoElement).poster;
+      } else if (el.tagName === 'META') {
+        cover = (el as HTMLMetaElement).content;
+      } else if (el.tagName === 'LINK') {
+        cover = (el as HTMLLinkElement).href;
+      } else {
+        cover = (el as HTMLImageElement).src || (el as HTMLImageElement).getAttribute('src') || '';
+      }
+      if (cover) break;
+    }
+  }
+  
+  if (!cover && id) {
+    cover = `https://api.i0.hdslb.com/bfs/archive/${id}.jpg`;
+  }
+  
+  const author = document.querySelector('.up-name__text, .user-name, .up-name')?.textContent?.trim() || '未知作者';
 
   return {
     id,
     title,
     url,
-    cover: cover.startsWith('//') ? 'https:' + cover : cover,
+    cover: normalizeUrl(cover),
     author,
     createdAt: Date.now(),
   };
+}
+
+function normalizeUrl(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('//')) {
+    return 'https:' + url;
+  }
+  if (url.startsWith('/')) {
+    return 'https://www.bilibili.com' + url;
+  }
+  if (!url.startsWith('http')) {
+    return 'https://' + url;
+  }
+  return url;
 }
 
 async function initFavButton() {

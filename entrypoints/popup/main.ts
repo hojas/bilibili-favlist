@@ -30,10 +30,20 @@ async function renderVideos() {
 }
 
 function createVideoCard(video: Video): string {
+  const defaultCover = 'data:image/svg+xml,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="120" height="68" viewBox="0 0 120 68">
+      <rect fill="#e3e5e7" width="120" height="68"/>
+      <rect x="45" y="24" width="30" height="20" rx="3" fill="#fb7299" opacity="0.8"/>
+      <polygon points="55,30 70,34 55,38" fill="white"/>
+      <text x="60" y="55" font-size="10" fill="#9499a0" text-anchor="middle">Bilibili</text>
+    </svg>
+  `);
+  
   return `
     <div class="video-card">
       <a href="${video.url}" target="_blank" class="video-link">
-        <img src="${video.cover}" alt="${video.title}" class="video-cover" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%2268%22 viewBox=%220 0 120 68%22><rect fill=%22%23e3e5e7%22 width=%22120%22 height=%2268%22/></svg>'">
+        <img src="${video.cover || defaultCover}" alt="${escapeHtml(video.title)}" class="video-cover" 
+             onerror="this.onerror=null; this.src='${defaultCover}';">
         <div class="video-info">
           <div class="video-title">${escapeHtml(video.title)}</div>
           <div class="video-meta">
