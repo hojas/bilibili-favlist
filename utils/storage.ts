@@ -35,3 +35,7 @@ export async function isVideoCollected(videoId: string): Promise<boolean> {
   const storage = await getStorage();
   return storage.videos.some(v => v.id === videoId);
 }
+
+export async function clearAllVideos(): Promise<void> {
+  await setStorage({ videos: [] });
+}

@@ -1,6 +1,6 @@
 import './style.css';
 import type { Video } from '@/types';
-import { getVideos, removeVideo, addVideo, isVideoCollected } from '@/utils/storage';
+import { getVideos, removeVideo, addVideo, isVideoCollected, clearAllVideos } from '@/utils/storage';
 
 async function renderVideos() {
   const videos = await getVideos();
@@ -102,6 +102,27 @@ async function collectCurrentPage() {
   }
 }
 
+async function handleClearAll() {
+  const videos = await getVideos();
+  if (videos.length === 0) {
+    alert('收藏夹已经是空的了！');
+    return;
+  }
+
+  const confirmed = confirm(`确定要清空收藏夹吗？\n将删除 ${videos.length} 个视频，此操作不可恢复！`);
+  if (!confirmed) return;
+
+  try {
+    await clearAllVideos();
+    alert('收藏夹已清空！');
+    renderVideos();
+  } catch (error) {
+    console.error('清空收藏夹失败:', error);
+    alert('清空收藏夹失败，请重试！');
+  }
+}
+
 document.getElementById('collect-current-btn')?.addEventListener('click', collectCurrentPage);
+document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAll);
 renderVideos();
 

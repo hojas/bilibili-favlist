@@ -37,6 +37,11 @@ header h1 {
   color: #fb7299;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 8px;
+}
+
 #collect-current-btn {
   display: flex;
   align-items: center;
@@ -57,6 +62,30 @@ header h1 {
 #collect-current-btn:disabled {
   background-color: #e3e5e7;
   cursor: not-allowed;
+}
+
+#clear-all-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background-color: #ff4d4f;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#clear-all-btn:hover {
+  background-color: #ff7875;
+  transform: scale(1.05);
+}
+
+#clear-all-btn:disabled {
+  background-color: #e3e5e7;
+  cursor: not-allowed;
+  transform: none;
 }
 
 #count-banner {
