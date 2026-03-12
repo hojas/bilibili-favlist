@@ -1,0 +1,188 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 400px;
+  max-height: 600px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: #f1f2f3;
+  color: #18191c;
+}
+
+#app {
+  width: 100%;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #fff;
+  border-bottom: 1px solid #e3e5e7;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fb7299;
+}
+
+#collect-current-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background-color: #fb7299;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+#collect-current-btn:hover {
+  opacity: 0.8;
+}
+
+#collect-current-btn:disabled {
+  background-color: #e3e5e7;
+  cursor: not-allowed;
+}
+
+#count-banner {
+  padding: 12px 16px;
+  background-color: #fff;
+  border-bottom: 1px solid #e3e5e7;
+}
+
+#count {
+  font-size: 14px;
+  color: #9499a0;
+}
+
+#videos-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+}
+
+#videos-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+#videos-container::-webkit-scrollbar-track {
+  background: #f1f2f3;
+}
+
+#videos-container::-webkit-scrollbar-thumb {
+  background: #c9ccd0;
+  border-radius: 3px;
+}
+
+.video-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  gap: 12px;
+  transition: box-shadow 0.2s;
+}
+
+.video-card:hover {
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.video-cover {
+  width: 120px;
+  height: 68px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.video-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.video-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #18191c;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.video-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.video-author {
+  font-size: 12px;
+  color: #9499a0;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #9499a0;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.delete-btn:hover {
+  color: #fb7299;
+}
+
+#empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #9499a0;
+  text-align: center;
+}
+
+#empty-state p {
+  margin: 4px 0;
+  font-size: 14px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.video-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
