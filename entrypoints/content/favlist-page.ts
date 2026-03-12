@@ -76,34 +76,68 @@ async function handleBatchCollect() {
   if (!button || !btnText) return;
   
   button.disabled = true;
-  btnText.textContent = '收集中...';
+  btnText.textContent = '准备中...';
   
   try {
-    const videos = parseFavlistVideos();
-    console.log('找到视频数量:', videos.length);
+    let totalCollected = 0;
+    let totalSkipped = 0;
+    let pageCount = 0;
+    const maxPageAttempts = 100;
+    const seenIds = new Set<string>();
     
-    if (videos.length === 0) {
-      alert('未找到任何视频！请确保在 B 站收藏夹或视频列表页面。');
-      return;
-    }
+    console.log('开始批量收藏，先等待页面稳定...');
+    await sleep(2000);
     
-    let collected = 0;
-    let skipped = 0;
-    
-    for (const video of videos) {
-      const exists = await isVideoCollected(video.id);
-      if (!exists) {
-        await addVideo(video);
-        collected++;
-      } else {
-        skipped++;
+    while (pageCount < maxPageAttempts) {
+      pageCount++;
+      btnText.textContent = `第${pageCount}页...`;
+      console.log(`正在处理第 ${pageCount} 页...`);
+      
+      await sleep(1500);
+      
+      const pageVideos = parseCurrentPageVideos();
+      console.log(`第 ${pageCount} 页找到 ${pageVideos.length} 个视频`);
+      
+      if (pageVideos.length === 0 && pageCount === 1) {
+        alert('未找到任何视频！请确保在 B 站收藏夹或视频列表页面。');
+        break;
       }
       
-      btnText.textContent = `${collected}/${videos.length}`;
-      await sleep(50);
+      let pageCollected = 0;
+      let pageSkipped = 0;
+      
+      for (const video of pageVideos) {
+        if (seenIds.has(video.id)) {
+          continue;
+        }
+        seenIds.add(video.id);
+        
+        const exists = await isVideoCollected(video.id);
+        if (!exists) {
+          await addVideo(video);
+          pageCollected++;
+          totalCollected++;
+        } else {
+          pageSkipped++;
+          totalSkipped++;
+        }
+        
+        btnText.textContent = `${totalCollected}/${totalCollected + totalSkipped}`;
+        await sleep(30);
+      }
+      
+      console.log(`第 ${pageCount} 页完成：收藏 ${pageCollected}，跳过 ${pageSkipped}`);
+      
+      const hasNextPage = await goToNextPage();
+      if (!hasNextPage) {
+        console.log('没有更多页面了');
+        break;
+      }
+      
+      await sleep(1500);
     }
     
-    alert(`批量收藏完成！\n成功收藏：${collected} 个\n已存在跳过：${skipped} 个`);
+    alert(`批量收藏完成！\n共处理 ${pageCount} 页\n成功收藏：${totalCollected} 个\n已存在跳过：${totalSkipped} 个`);
     
   } catch (error) {
     console.error('批量收藏失败:', error);
@@ -114,36 +148,149 @@ async function handleBatchCollect() {
   }
 }
 
-function parseFavlistVideos(): Video[] {
+function parseCurrentPageVideos(): Video[] {
   const videos: Video[] = [];
+  const items = document.querySelectorAll('.fav-video-item, .small-item, .video-item, .list-item, .bili-video-card, [class*="video-card"], [class*="video-item"]');
   
-  const containers = [
-    document.querySelector('.fav-container'),
-    document.querySelector('.video-list'),
-    document.querySelector('.list-container'),
-    document.querySelector('.small-item-list'),
-    document.querySelector('.bili-video-list'),
-    document.querySelector('[class*="fav-list"]'),
-    document.querySelector('[class*="video-list"]'),
-    document.querySelector('[class*="list-container"]'),
+  console.log('当前页找到视频项数量:', items.length);
+  
+  items.forEach((item, index) => {
+    try {
+      const link = item.querySelector('a[href*="/video/"]') as HTMLAnchorElement;
+      if (!link) return;
+      
+      const url = link.href;
+      const bvMatch = url.match(/BV\w+/);
+      if (!bvMatch) return;
+      
+      const id = bvMatch[0];
+      
+      const titleSelectors = [
+        '.title', '.video-title', '.name', 'h3', 'h4', 
+        '[class*="title"]', '[class*="name"]'
+      ];
+      let title = '未知标题';
+      for (const sel of titleSelectors) {
+        const el = item.querySelector(sel);
+        if (el && el.textContent?.trim()) {
+          title = el.textContent.trim();
+          break;
+        }
+      }
+      
+      const authorSelectors = [
+        '.up', '.author', '.username', '.up-name', '[class*="up"], [class*="author"], [class*="user"]'
+      ];
+      let author = '未知作者';
+      for (const sel of authorSelectors) {
+        const el = item.querySelector(sel);
+        if (el && el.textContent?.trim()) {
+          author = el.textContent.trim();
+          break;
+        }
+      }
+      
+      let cover = '';
+      const coverImg = item.querySelector('img') as HTMLImageElement;
+      if (coverImg) {
+        cover = coverImg.src || coverImg.getAttribute('src') || '';
+        if (!cover) {
+          cover = coverImg.getAttribute('data-src') || '';
+        }
+        if (!cover) {
+          cover = coverImg.getAttribute('data-url') || '';
+        }
+      }
+      
+      videos.push({
+        id,
+        title,
+        url: normalizeUrl(url),
+        cover: normalizeUrl(cover),
+        author,
+        createdAt: Date.now(),
+      });
+    } catch (e) {
+      console.error('解析视频项失败:', index, e);
+    }
+  });
+  
+  return videos;
+}
+
+function getVideoItemCount(): number {
+  const items = document.querySelectorAll('.fav-video-item, .small-item, .video-item, .list-item, .bili-video-card, [class*="video-card"], [class*="video-item"]');
+  return items.length;
+}
+
+async function goToNextPage(): Promise<boolean> {
+  const nextPageSelectors = [
+    '.next-page-btn',
+    '.next-btn',
+    '.pagination-next',
+    '.page-next',
+    '[class*="next-page"]',
+    '[class*="next-btn"]',
   ];
   
-  let targetContainer: Element | null = null;
-  for (const container of containers) {
-    if (container && container.children.length > 0) {
-      targetContainer = container;
-      break;
+  let nextButton: HTMLElement | null = null;
+  
+  for (const selector of nextPageSelectors) {
+    const elements = document.querySelectorAll(selector);
+    for (const el of elements) {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.offsetParent !== null && !htmlEl.hasAttribute('disabled') && !htmlEl.classList.contains('disabled')) {
+        nextButton = htmlEl;
+        break;
+      }
+    }
+    if (nextButton) break;
+  }
+  
+  if (!nextButton) {
+    const allButtons = document.querySelectorAll('button, a');
+    for (const btn of allButtons) {
+      const text = btn.textContent?.toLowerCase() || '';
+      const htmlBtn = btn as HTMLElement;
+      if ((text.includes('下一页') || text.includes('next') || text.includes('→')) && 
+          htmlBtn.offsetParent !== null && 
+          !htmlBtn.hasAttribute('disabled') && 
+          !htmlBtn.classList.contains('disabled')) {
+        nextButton = htmlBtn;
+        break;
+      }
     }
   }
   
-  if (!targetContainer) {
-    console.log('未找到收藏夹容器，使用 document.body');
-    targetContainer = document.body;
+  if (nextButton) {
+    const currentHtml = document.body.innerHTML.substring(0, 1000);
+    nextButton.click();
+    console.log('点击了下一页按钮');
+    
+    let attempts = 0;
+    const maxAttempts = 50;
+    while (attempts < maxAttempts) {
+      await sleep(200);
+      const newHtml = document.body.innerHTML.substring(0, 1000);
+      if (newHtml !== currentHtml) {
+        console.log('检测到页面内容变化');
+        break;
+      }
+      attempts++;
+    }
+    
+    return true;
   }
   
-  console.log('使用的容器:', targetContainer.className || targetContainer.tagName);
+  console.log('未找到下一页按钮');
+  return false;
+}
+
+function parseFavlistVideos(): Video[] {
+  const videos: Video[] = [];
+  const seenIds = new Set<string>();
   
-  const items = targetContainer.querySelectorAll('.fav-video-item, .small-item, .video-item, .list-item, .bili-video-card, [class*="video-card"], [class*="video-item"]');
+  const items = document.querySelectorAll('.fav-video-item, .small-item, .video-item, .list-item, .bili-video-card, [class*="video-card"], [class*="video-item"]');
   
   console.log('找到视频项数量:', items.length);
   
@@ -157,6 +304,12 @@ function parseFavlistVideos(): Video[] {
       if (!bvMatch) return;
       
       const id = bvMatch[0];
+      
+      if (seenIds.has(id)) {
+        return;
+      }
+      
+      seenIds.add(id);
       
       const titleSelectors = [
         '.title', '.video-title', '.name', 'h3', 'h4', 
