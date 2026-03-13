@@ -1,30 +1,30 @@
-import { getVideoInfo, initFavButton } from './content/video-page';
-import { initFavlistBatchButton } from './content/favlist-page';
-import { getCurrentPageType } from './content/utils';
+import { initFavlistBatchButton } from './content/favlist-page'
+import { getCurrentPageType } from './content/utils'
+import { getVideoInfo, initFavButton } from './content/video-page'
 
 export default defineContentScript({
   matches: ['*://*.bilibili.com/*'],
   main() {
-    const pageType = getCurrentPageType();
-    
+    const pageType = getCurrentPageType()
+
     switch (pageType) {
       case 'video':
-        initFavButton();
-        break;
+        initFavButton()
+        break
       case 'favlist':
-        initFavlistBatchButton();
-        break;
+        initFavlistBatchButton()
+        break
     }
-    
-    initMessageListener();
+
+    initMessageListener()
   },
-});
+})
 
 function initMessageListener() {
   chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === 'getVideoInfo') {
-      const video = getVideoInfo();
-      sendResponse({ video });
+      const video = getVideoInfo()
+      sendResponse({ video })
     }
-  });
+  })
 }

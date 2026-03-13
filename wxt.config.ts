@@ -1,4 +1,4 @@
-import { defineConfig } from 'wxt';
+import { defineConfig } from 'wxt'
 
 export default defineConfig({
   manifest: {
@@ -7,4 +7,4 @@ export default defineConfig({
     permissions: ['storage', 'activeTab'],
     host_permissions: ['*://*.bilibili.com/*'],
   },
-});
+})

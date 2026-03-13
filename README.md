@@ -105,12 +105,12 @@ pnpm zip
 
 ```typescript
 interface Video {
-  id: string;           // 视频 BV 号
-  title: string;        // 视频标题
-  url: string;          // 视频链接
-  cover: string;        // 封面图片
-  author: string;       // UP 主名称
-  createdAt: number;    // 收藏时间戳
+  id: string // 视频 BV 号
+  title: string // 视频标题
+  url: string // 视频链接
+  cover: string // 封面图片
+  author: string // UP 主名称
+  createdAt: number // 收藏时间戳
 }
 ```
 

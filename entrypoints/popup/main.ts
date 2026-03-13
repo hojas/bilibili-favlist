@@ -1,44 +1,105 @@
-import './style.css';
-import type { Video } from '@/types';
-import { getVideos, removeVideo, addVideo, isVideoCollected, clearAllVideos } from '@/utils/storage';
+import type { Video } from '@/types'
+import { addVideo, clearAllVideos, getVideos, isVideoCollected, removeVideo } from '@/utils/storage'
+import './style.css'
+
+function showModal(message: string, buttons: Array<{ text: string, primary?: boolean, onClose?: () => void }>): Promise<void> {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('modal-overlay')!
+    const content = document.getElementById('modal-content')!
+    const buttonsContainer = document.getElementById('modal-buttons')!
+
+    content.textContent = message
+    buttonsContainer.innerHTML = ''
+
+    buttons.forEach((btn) => {
+      const button = document.createElement('button')
+      button.className = `modal-btn ${btn.primary ? 'modal-btn-primary' : 'modal-btn-secondary'}`
+      button.textContent = btn.text
+      button.addEventListener('click', () => {
+        overlay.classList.add('hidden')
+        btn.onClose?.()
+        resolve()
+      })
+      buttonsContainer.appendChild(button)
+    })
+
+    overlay.classList.remove('hidden')
+  })
+}
+
+function showAlert(message: string): Promise<void> {
+  return showModal(message, [{ text: '确定', primary: true }])
+}
+
+function showConfirm(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('modal-overlay')!
+    const content = document.getElementById('modal-content')!
+    const buttonsContainer = document.getElementById('modal-buttons')!
+
+    content.textContent = message
+    buttonsContainer.innerHTML = ''
+
+    const cancelBtn = document.createElement('button')
+    cancelBtn.className = 'modal-btn modal-btn-secondary'
+    cancelBtn.textContent = '取消'
+    cancelBtn.addEventListener('click', () => {
+      overlay.classList.add('hidden')
+      resolve(false)
+    })
+
+    const confirmBtn = document.createElement('button')
+    confirmBtn.className = 'modal-btn modal-btn-primary'
+    confirmBtn.textContent = '确定'
+    confirmBtn.addEventListener('click', () => {
+      overlay.classList.add('hidden')
+      resolve(true)
+    })
+
+    buttonsContainer.appendChild(cancelBtn)
+    buttonsContainer.appendChild(confirmBtn)
+
+    overlay.classList.remove('hidden')
+  })
+}
 
 async function renderVideos() {
-  const videos = await getVideos();
-  const container = document.getElementById('videos-container')!;
-  const countEl = document.getElementById('count')!;
-  const emptyState = document.getElementById('empty-state')!;
+  const videos = await getVideos()
+  const container = document.getElementById('videos-container')!
+  const countEl = document.getElementById('count')!
+  const emptyState = document.getElementById('empty-state')!
 
-  countEl.textContent = `${videos.length} 个视频`;
+  countEl.textContent = `${videos.length} 个视频`
 
   if (videos.length === 0) {
-    container.classList.add('hidden');
-    emptyState.classList.remove('hidden');
-    return;
+    container.classList.add('hidden')
+    emptyState.classList.remove('hidden')
+    return
   }
 
-  container.classList.remove('hidden');
-  emptyState.classList.add('hidden');
-  container.innerHTML = videos.map(video => createVideoCard(video)).join('');
+  container.classList.remove('hidden')
+  emptyState.classList.add('hidden')
+  container.innerHTML = videos.map(video => createVideoCard(video)).join('')
 
   container.querySelectorAll('.delete-btn').forEach((btn, index) => {
     btn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await removeVideo(videos[index].id);
-      renderVideos();
-    });
-  });
+      e.stopPropagation()
+      await removeVideo(videos[index].id)
+      renderVideos()
+    })
+  })
 }
 
 function createVideoCard(video: Video): string {
-  const defaultCover = 'data:image/svg+xml,' + encodeURIComponent(`
+  const defaultCover = `data:image/svg+xml,${encodeURIComponent(`
     <svg xmlns="http://www.w3.org/2000/svg" width="120" height="68" viewBox="0 0 120 68">
       <rect fill="#e3e5e7" width="120" height="68"/>
       <rect x="45" y="24" width="30" height="20" rx="3" fill="#fb7299" opacity="0.8"/>
       <polygon points="55,30 70,34 55,38" fill="white"/>
       <text x="60" y="55" font-size="10" fill="#9499a0" text-anchor="middle">Bilibili</text>
     </svg>
-  `);
-  
+  `)}`
+
   return `
     <div class="video-card">
       <a href="${video.url}" target="_blank" class="video-link">
@@ -57,72 +118,75 @@ function createVideoCard(video: Video): string {
         </svg>
       </button>
     </div>
-  `;
+  `
 }
 
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
 }
 
 async function collectCurrentPage() {
-  const btn = document.getElementById('collect-current-btn') as HTMLButtonElement;
-  btn.disabled = true;
+  const btn = document.getElementById('collect-current-btn') as HTMLButtonElement
+  btn.disabled = true
 
   try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     if (!tab.id || !tab.url?.includes('bilibili.com/video/')) {
-      alert('请先打开一个 Bilibili 视频页面！');
-      return;
+      await showAlert('请先打开一个 Bilibili 视频页面！')
+      return
     }
 
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getVideoInfo' });
-    const video = response?.video;
+    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getVideoInfo' })
+    const video = response?.video
 
     if (!video) {
-      alert('未能获取视频信息，请刷新页面后重试！');
-      return;
+      await showAlert('未能获取视频信息，请刷新页面后重试！')
+      return
     }
 
-    const collected = await isVideoCollected(video.id);
+    const collected = await isVideoCollected(video.id)
     if (collected) {
-      alert('该视频已经收藏过了！');
-      return;
+      await showAlert('该视频已经收藏过了！')
+      return
     }
 
-    await addVideo(video);
-    alert('收藏成功！');
-    renderVideos();
-  } catch (error) {
-    console.error('收藏失败:', error);
-    alert('收藏失败，请确保在 Bilibili 视频页面上！');
-  } finally {
-    btn.disabled = false;
+    await addVideo(video)
+    await showAlert('收藏成功！')
+    renderVideos()
+  }
+  catch (error) {
+    console.error('收藏失败:', error)
+    await showAlert('收藏失败，请确保在 Bilibili 视频页面上！')
+  }
+  finally {
+    btn.disabled = false
   }
 }
 
 async function handleClearAll() {
-  const videos = await getVideos();
+  const videos = await getVideos()
   if (videos.length === 0) {
-    alert('收藏夹已经是空的了！');
-    return;
+    await showAlert('收藏夹已经是空的了！')
+    return
   }
 
-  const confirmed = confirm(`确定要清空收藏夹吗？\n将删除 ${videos.length} 个视频，此操作不可恢复！`);
-  if (!confirmed) return;
+  const confirmed = await showConfirm(`确定要清空收藏夹吗？\n将删除 ${videos.length} 个视频，此操作不可恢复！`)
+  if (!confirmed)
+    return
 
   try {
-    await clearAllVideos();
-    alert('收藏夹已清空！');
-    renderVideos();
-  } catch (error) {
-    console.error('清空收藏夹失败:', error);
-    alert('清空收藏夹失败，请重试！');
+    await clearAllVideos()
+    await showAlert('收藏夹已清空！')
+    renderVideos()
+  }
+  catch (error) {
+    console.error('清空收藏夹失败:', error)
+    await showAlert('清空收藏夹失败，请重试！')
   }
 }
 
-document.getElementById('collect-current-btn')?.addEventListener('click', collectCurrentPage);
-document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAll);
-renderVideos();
-
+document.getElementById('collect-current-btn')?.addEventListener('click', collectCurrentPage)
+document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAll)
+renderVideos()
