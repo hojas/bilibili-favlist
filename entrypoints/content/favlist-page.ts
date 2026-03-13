@@ -37,21 +37,41 @@ async function handleBatchCollect() {
   try {
     let totalCollected = 0;
     let totalSkipped = 0;
+    let pageCount = 0;
+    const maxPageAttempts = 50;
+    const seenIds = new Set<string>();
     
-    const pageVideos = parseCurrentPageVideos();
-    
-    for (const video of pageVideos) {
-      const exists = await isVideoCollected(video.id);
-      if (!exists) {
-        await addVideo(video);
-        totalCollected++;
-      } else {
-        totalSkipped++;
+    while (pageCount < maxPageAttempts) {
+      pageCount++;
+      button.textContent = `第${pageCount}页...`;
+      
+      await sleep(1000);
+      
+      const pageVideos = parseCurrentPageVideos();
+      
+      for (const video of pageVideos) {
+        if (seenIds.has(video.id)) continue;
+        seenIds.add(video.id);
+        
+        const exists = await isVideoCollected(video.id);
+        if (!exists) {
+          await addVideo(video);
+          totalCollected++;
+        } else {
+          totalSkipped++;
+        }
+        
+        button.textContent = `${totalCollected}/${totalCollected + totalSkipped}`;
+        await sleep(30);
       }
-      await sleep(50);
+      
+      const hasNextPage = goToNextPage();
+      if (!hasNextPage) break;
+      
+      await sleep(1500);
     }
     
-    alert(`批量收藏完成！\n成功收藏：${totalCollected} 个\n已存在跳过：${totalSkipped} 个`);
+    alert(`批量收藏完成！\n共处理 ${pageCount} 页\n成功收藏：${totalCollected} 个\n已存在跳过：${totalSkipped} 个`);
     
   } catch (error) {
     console.error('批量收藏失败:', error);
@@ -99,4 +119,53 @@ function parseCurrentPageVideos(): Video[] {
   });
   
   return videos;
+}
+
+function goToNextPage(): boolean {
+  const nextPageSelectors = [
+    '.next-page-btn',
+    '.next-btn',
+    '.pagination-next',
+    '.page-next',
+    '[class*="next-page"]',
+    '[class*="next-btn"]',
+  ];
+  
+  let nextButton: HTMLElement | null = null;
+  
+  for (const selector of nextPageSelectors) {
+    const elements = document.querySelectorAll(selector);
+    for (const el of elements) {
+      const htmlEl = el as HTMLElement;
+      if (htmlEl.offsetParent !== null && 
+          !htmlEl.hasAttribute('disabled') && 
+          !htmlEl.classList.contains('disabled')) {
+        nextButton = htmlEl;
+        break;
+      }
+    }
+    if (nextButton) break;
+  }
+  
+  if (!nextButton) {
+    const allButtons = document.querySelectorAll('button, a');
+    for (const btn of allButtons) {
+      const text = btn.textContent?.toLowerCase() || '';
+      const htmlBtn = btn as HTMLElement;
+      if ((text.includes('下一页') || text.includes('next') || text.includes('→')) && 
+          htmlBtn.offsetParent !== null && 
+          !htmlBtn.hasAttribute('disabled') && 
+          !htmlBtn.classList.contains('disabled')) {
+        nextButton = htmlBtn;
+        break;
+      }
+    }
+  }
+  
+  if (nextButton) {
+    nextButton.click();
+    return true;
+  }
+  
+  return false;
 }
