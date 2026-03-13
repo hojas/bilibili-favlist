@@ -5,10 +5,12 @@
 ## 功能特性
 
 - 🎬 在 Bilibili 视频页面一键收藏视频
+- 📦 批量收藏功能 - 从收藏夹页面批量收藏视频
 - 💾 收藏数据保存到浏览器本地存储
 - 📋 在插件弹窗中查看所有收藏的视频
-- 🗑️ 支持删除已收藏的视频
+- 🗑️ 支持删除已收藏的视频和清空收藏夹
 - 🔗 点击视频卡片可直接跳转到原视频页面
+- ✨ 优雅的用户交互 - 使用自定义 modal 和 toast 消息
 
 ## 技术栈
 
@@ -16,22 +18,28 @@
 - **语言**: TypeScript
 - **包管理器**: pnpm
 - **存储**: Chrome Storage API
+- **代码规范**: ESLint + @antfu/eslint-config
 
 ## 项目结构
 
 ```
 bilibili-favlist/
 ├── entrypoints/
-│   ├── content.ts          # 内容脚本 - 在 Bilibili 页面注入收藏按钮
-│   ├── background.ts       # 后台脚本
-│   └── popup/              # 弹窗 UI
+│   ├── content.ts              # 内容脚本入口
+│   ├── background.ts           # 后台脚本
+│   ├── content/                # 内容脚本模块
+│   │   ├── favlist-page.ts     # 收藏夹页面批量收藏功能
+│   │   ├── video-page.ts       # 视频页面收藏功能
+│   │   └── utils.ts            # 工具函数（含 toast 消息）
+│   └── popup/                  # 弹窗 UI
 │       ├── index.html
 │       ├── main.ts
 │       └── style.css
 ├── utils/
-│   └── storage.ts          # 本地存储工具函数
-├── types.ts                # TypeScript 类型定义
-├── wxt.config.ts           # WXT 配置文件
+│   └── storage.ts              # 本地存储工具函数
+├── types.ts                    # TypeScript 类型定义
+├── eslint.config.js            # ESLint 配置
+├── wxt.config.ts               # WXT 配置文件
 ├── package.json
 └── README.md
 ```
@@ -92,12 +100,19 @@ pnpm zip
 3. 点击按钮即可收藏该视频
 4. 再次点击可取消收藏
 
+### 批量收藏
+
+1. 访问 Bilibili 收藏夹页面
+2. 页面右上角会出现一个粉色的 "批量收藏" 按钮
+3. 点击按钮开始批量收藏当前页面及后续页面的视频
+
 ### 查看收藏列表
 
 1. 点击浏览器工具栏中的插件图标
 2. 弹窗会显示所有已收藏的视频
 3. 点击视频卡片可跳转到原视频页面
 4. 点击删除图标可移除收藏
+5. 点击清空按钮可清空所有收藏（需要确认）
 
 ## 数据存储
 
@@ -122,6 +137,8 @@ interface Video {
 | `pnpm build` | 构建生产版本 |
 | `pnpm zip` | 打包为 ZIP 文件 |
 | `pnpm compile` | TypeScript 类型检查 |
+| `pnpm lint` | 运行 ESLint 检查 |
+| `pnpm lint:fix` | 自动修复 ESLint 问题 |
 
 ## License
 
