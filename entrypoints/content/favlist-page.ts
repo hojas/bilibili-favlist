@@ -84,7 +84,7 @@ async function handleBatchCollect() {
 
 function parseCurrentPageVideos(): Video[] {
   const videos: Video[] = [];
-  const items = document.querySelectorAll('.fav-video-item, .small-item, .video-item, .list-item, .bili-video-card');
+  const items = document.querySelectorAll('.fav-video-item, .small-item, .video-item, .list-item, .bili-video-card, [class*="video-card"], [class*="video-item"]');
   
   items.forEach((item) => {
     try {
@@ -97,8 +97,31 @@ function parseCurrentPageVideos(): Video[] {
       
       const id = bvMatch[0];
       
-      const title = item.querySelector('.title, .video-title, .name')?.textContent?.trim() || '未知标题';
-      const author = item.querySelector('.up, .author, .up-name')?.textContent?.trim() || '未知作者';
+      const titleSelectors = [
+        '.title', '.video-title', '.name', 'h3', 'h4', 
+        '[class*="title"]', '[class*="name"]'
+      ];
+      let title = '未知标题';
+      for (const sel of titleSelectors) {
+        const el = item.querySelector(sel);
+        if (el && el.textContent?.trim()) {
+          title = el.textContent.trim();
+          break;
+        }
+      }
+      
+      const authorSelectors = [
+        '.up', '.author', '.username', '.up-name', 
+        '[class*="up"]', '[class*="author"]', '[class*="user"]'
+      ];
+      let author = '未知作者';
+      for (const sel of authorSelectors) {
+        const el = item.querySelector(sel);
+        if (el && el.textContent?.trim()) {
+          author = el.textContent.trim();
+          break;
+        }
+      }
       
       let cover = '';
       const coverImg = item.querySelector('img') as HTMLImageElement;
