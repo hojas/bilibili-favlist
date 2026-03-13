@@ -3,7 +3,7 @@ import { initFavlistBatchButton } from './content/favlist-page';
 import { getCurrentPageType } from './content/utils';
 
 export default defineContentScript({
-  matches: ['*://*.bilibili.com/video/*', '*://*.bilibili.com/*/favlist*', '*://*.bilibili.com/medialist/play/*'],
+  matches: ['*://*.bilibili.com/*'],
   main() {
     const pageType = getCurrentPageType();
     
