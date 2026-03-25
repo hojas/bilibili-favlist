@@ -20,7 +20,7 @@ body {
 
 header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 20px 24px;
   background-color: #fff;
@@ -35,35 +35,6 @@ header h1 {
   font-size: 24px;
   font-weight: 600;
   color: #fb7299;
-}
-
-.header-buttons {
-  display: flex;
-  gap: 12px;
-}
-
-#clear-all-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  background-color: #ff4d4f;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-#clear-all-btn:hover {
-  background-color: #ff7875;
-  transform: translateY(-1px);
-}
-
-#clear-all-btn:disabled {
-  background-color: #e3e5e7;
-  cursor: not-allowed;
-  transform: none;
 }
 
 #search-banner {
@@ -370,10 +341,6 @@ header h1 {
 
   header h1 {
     font-size: 18px;
-  }
-
-  #clear-all-btn {
-    padding: 8px 12px;
   }
 
   #search-banner {

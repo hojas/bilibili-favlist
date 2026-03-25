@@ -1,5 +1,5 @@
 import type { Video } from '@/types'
-import { clearAllVideos, getVideos, removeVideo } from '@/utils/storage'
+import { getVideos, removeVideo } from '@/utils/storage'
 import './style.css'
 
 let allVideos: Video[] = []
@@ -32,38 +32,6 @@ function showModal(message: string, buttons: Array<{ text: string, primary?: boo
 
 function showAlert(message: string): Promise<void> {
   return showModal(message, [{ text: '确定', primary: true }])
-}
-
-function showConfirm(message: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const overlay = document.getElementById('modal-overlay')!
-    const content = document.getElementById('modal-content')!
-    const buttonsContainer = document.getElementById('modal-buttons')!
-
-    content.textContent = message
-    buttonsContainer.innerHTML = ''
-
-    const cancelBtn = document.createElement('button')
-    cancelBtn.className = 'modal-btn modal-btn-secondary'
-    cancelBtn.textContent = '取消'
-    cancelBtn.addEventListener('click', () => {
-      overlay.classList.add('hidden')
-      resolve(false)
-    })
-
-    const confirmBtn = document.createElement('button')
-    confirmBtn.className = 'modal-btn modal-btn-primary'
-    confirmBtn.textContent = '确定'
-    confirmBtn.addEventListener('click', () => {
-      overlay.classList.add('hidden')
-      resolve(true)
-    })
-
-    buttonsContainer.appendChild(cancelBtn)
-    buttonsContainer.appendChild(confirmBtn)
-
-    overlay.classList.remove('hidden')
-  })
 }
 
 function filterVideos(videos: Video[], keyword: string): Video[] {
@@ -163,27 +131,6 @@ function escapeHtml(text: string): string {
   return div.innerHTML
 }
 
-async function handleClearAll() {
-  if (allVideos.length === 0) {
-    await showAlert('收藏夹已经是空的了！')
-    return
-  }
-
-  const confirmed = await showConfirm(`确定要清空收藏夹吗？\n将删除 ${allVideos.length} 个视频，此操作不可恢复！`)
-  if (!confirmed)
-    return
-
-  try {
-    await clearAllVideos()
-    allVideos = []
-    renderVideos()
-  }
-  catch (error) {
-    console.error('清空收藏夹失败:', error)
-    await showAlert('清空收藏夹失败，请重试！')
-  }
-}
-
 function handleSearch(e: Event) {
   const input = e.target as HTMLInputElement
   currentKeyword = input.value
@@ -201,7 +148,6 @@ async function init() {
   allVideos = await getVideos()
   renderVideos()
 
-  document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAll)
   document.getElementById('search-input')?.addEventListener('input', handleSearch)
   document.getElementById('clear-search-btn')?.addEventListener('click', handleClearSearch)
 }
