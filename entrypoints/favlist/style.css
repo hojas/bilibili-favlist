@@ -12,8 +12,7 @@ body {
 }
 
 #app {
-  max-width: 900px;
-  margin: 0 auto;
+  width: 100%;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -82,7 +81,7 @@ header h1 {
   flex: 1;
   padding: 24px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
   align-content: start;
 }
@@ -254,4 +253,108 @@ header h1 {
 .modal-btn-secondary {
   background-color: #e3e5e7;
   color: #61666d;
+}
+
+@media (max-width: 768px) {
+  header {
+    padding: 16px;
+  }
+
+  header h1 {
+    font-size: 20px;
+  }
+
+  #count-banner {
+    padding: 12px 16px;
+  }
+
+  #videos-container {
+    padding: 16px;
+    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .video-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .video-cover {
+    width: 120px;
+    height: 68px;
+  }
+
+  .video-title {
+    font-size: 13px;
+  }
+
+  .video-author {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    padding: 12px;
+  }
+
+  header h1 {
+    font-size: 18px;
+  }
+
+  #clear-all-btn {
+    padding: 8px 12px;
+  }
+
+  #count-banner {
+    padding: 10px 12px;
+  }
+
+  #count {
+    font-size: 13px;
+  }
+
+  #videos-container {
+    padding: 12px;
+    gap: 10px;
+    grid-template-columns: 1fr;
+  }
+
+  .video-card {
+    padding: 12px;
+  }
+
+  .video-cover {
+    width: 100px;
+    height: 56px;
+  }
+
+  .video-title {
+    font-size: 12px;
+    -webkit-line-clamp: 2;
+  }
+
+  .video-author {
+    font-size: 10px;
+  }
+
+  .delete-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .modal {
+    margin: 16px;
+    min-width: auto;
+    width: calc(100% - 32px);
+  }
+
+  .modal-content {
+    font-size: 14px;
+  }
+
+  .modal-btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
 }
