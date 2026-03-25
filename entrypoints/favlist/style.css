@@ -32,10 +32,22 @@ header {
   gap: 16px;
 }
 
+.header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
 header h1 {
   font-size: 24px;
   font-weight: 600;
   color: #fb7299;
+  white-space: nowrap;
+}
+
+#count {
+  font-size: 14px;
+  color: #9499a0;
   white-space: nowrap;
 }
 
@@ -122,17 +134,6 @@ header h1 {
 #import-btn:hover {
   background-color: #e3e5e7;
   transform: translateY(-1px);
-}
-
-#count-banner {
-  padding: 12px 24px;
-  background-color: #fff;
-  border-bottom: 1px solid #e3e5e7;
-}
-
-#count {
-  font-size: 14px;
-  color: #9499a0;
 }
 
 #videos-container {
@@ -326,6 +327,14 @@ header h1 {
     font-size: 20px;
   }
 
+  .header-left {
+    gap: 8px;
+  }
+
+  #count {
+    font-size: 13px;
+  }
+
   .header-right {
     width: 100%;
     justify-content: space-between;
@@ -340,10 +349,6 @@ header h1 {
   #import-btn {
     padding: 6px 12px;
     font-size: 13px;
-  }
-
-  #count-banner {
-    padding: 10px 16px;
   }
 
   #videos-container {
@@ -380,6 +385,10 @@ header h1 {
     font-size: 18px;
   }
 
+  #count {
+    font-size: 12px;
+  }
+
   #export-btn span,
   #import-btn span {
     display: none;
@@ -395,14 +404,6 @@ header h1 {
   }
 
   #search-input {
-    font-size: 13px;
-  }
-
-  #count-banner {
-    padding: 10px 12px;
-  }
-
-  #count {
     font-size: 13px;
   }
 
