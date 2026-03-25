@@ -1,5 +1,5 @@
 import type { Video } from '@/types'
-import { getVideos, removeVideo } from '@/utils/storage'
+import { getVideos, importVideos, removeVideo } from '@/utils/storage'
 import './style.css'
 
 let allVideos: Video[] = []
@@ -144,12 +144,83 @@ function handleClearSearch() {
   renderVideos()
 }
 
+function handleExport() {
+  if (allVideos.length === 0) {
+    showAlert('收藏夹是空的，无法导出！')
+    return
+  }
+
+  const data = JSON.stringify(allVideos, null, 2)
+  const blob = new Blob([data], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `bilibili-favlist-${new Date().toISOString().slice(0, 10)}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+
+  showAlert(`成功导出 ${allVideos.length} 个视频！`)
+}
+
+function handleImportClick() {
+  const fileInput = document.getElementById('import-file') as HTMLInputElement
+  fileInput.click()
+}
+
+async function handleImportFile(e: Event) {
+  const fileInput = e.target as HTMLInputElement
+  const file = fileInput.files?.[0]
+  if (!file)
+    return
+
+  try {
+    const text = await file.text()
+    const videos = JSON.parse(text) as Video[]
+
+    if (!Array.isArray(videos)) {
+      showAlert('文件格式错误：需要视频数组')
+      return
+    }
+
+    const validVideos = videos.filter(v =>
+      v.id && v.title && v.url,
+    )
+
+    if (validVideos.length === 0) {
+      showAlert('文件中没有有效的视频数据')
+      return
+    }
+
+    const result = await importVideos(validVideos)
+    allVideos = await getVideos()
+    renderVideos()
+
+    let message = `导入完成！\n新增：${result.added} 个视频`
+    if (result.skipped > 0) {
+      message += `\n跳过（已存在）：${result.skipped} 个`
+    }
+    showAlert(message)
+  }
+  catch (error) {
+    console.error('导入失败:', error)
+    showAlert('导入失败，请确保文件格式正确！')
+  }
+  finally {
+    fileInput.value = ''
+  }
+}
+
 async function init() {
   allVideos = await getVideos()
   renderVideos()
 
   document.getElementById('search-input')?.addEventListener('input', handleSearch)
   document.getElementById('clear-search-btn')?.addEventListener('click', handleClearSearch)
+  document.getElementById('export-btn')?.addEventListener('click', handleExport)
+  document.getElementById('import-btn')?.addEventListener('click', handleImportClick)
+  document.getElementById('import-file')?.addEventListener('change', handleImportFile)
 }
 
 init()

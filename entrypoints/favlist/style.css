@@ -20,7 +20,7 @@ body {
 
 header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
   background-color: #fff;
@@ -35,6 +35,33 @@ header h1 {
   font-size: 24px;
   font-weight: 600;
   color: #fb7299;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+#export-btn,
+#import-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background-color: #f1f2f3;
+  color: #18191c;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+#export-btn:hover,
+#import-btn:hover {
+  background-color: #e3e5e7;
+  transform: translateY(-1px);
 }
 
 #search-banner {
@@ -288,10 +315,24 @@ header h1 {
 @media (max-width: 768px) {
   header {
     padding: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
   header h1 {
     font-size: 20px;
+  }
+
+  .header-buttons {
+    order: 2;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  #export-btn,
+  #import-btn {
+    padding: 6px 12px;
+    font-size: 13px;
   }
 
   #search-banner {
@@ -341,6 +382,16 @@ header h1 {
 
   header h1 {
     font-size: 18px;
+  }
+
+  #export-btn span,
+  #import-btn span {
+    display: none;
+  }
+
+  #export-btn,
+  #import-btn {
+    padding: 8px;
   }
 
   #search-banner {

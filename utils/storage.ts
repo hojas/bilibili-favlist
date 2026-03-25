@@ -46,3 +46,24 @@ export async function clearAllVideos(): Promise<void> {
   storageCache = { videos: [] }
   await setStorage({ videos: [] })
 }
+
+export async function importVideos(videos: Video[]): Promise<{ added: number, skipped: number }> {
+  const storage = await getStorage()
+  const existingIds = new Set(storage.videos.map(v => v.id))
+  let added = 0
+  let skipped = 0
+
+  for (const video of videos) {
+    if (existingIds.has(video.id)) {
+      skipped++
+    }
+    else {
+      storage.videos.push(video)
+      existingIds.add(video.id)
+      added++
+    }
+  }
+
+  await setStorage(storage)
+  return { added, skipped }
+}
