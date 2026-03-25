@@ -43,32 +43,6 @@ header h1 {
   gap: 12px;
 }
 
-#collect-current-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 16px;
-  background-color: #fb7299;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-#collect-current-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-#collect-current-btn:disabled {
-  background-color: #e3e5e7;
-  cursor: not-allowed;
-  transform: none;
-}
-
 #clear-all-btn {
   display: flex;
   align-items: center;

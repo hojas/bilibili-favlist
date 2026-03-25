@@ -1,5 +1,5 @@
 import type { Video } from '@/types'
-import { addVideo, clearAllVideos, getVideos, isVideoCollected, removeVideo } from '@/utils/storage'
+import { clearAllVideos, getVideos, removeVideo } from '@/utils/storage'
 import './style.css'
 
 function showModal(message: string, buttons: Array<{ text: string, primary?: boolean, onClose?: () => void }>): Promise<void> {
@@ -127,44 +127,6 @@ function escapeHtml(text: string): string {
   return div.innerHTML
 }
 
-async function collectCurrentPage() {
-  const btn = document.getElementById('collect-current-btn') as HTMLButtonElement
-  btn.disabled = true
-
-  try {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
-    if (!tab.id || !tab.url?.includes('bilibili.com/video/')) {
-      await showAlert('请先打开一个 Bilibili 视频页面！')
-      return
-    }
-
-    const response = await chrome.tabs.sendMessage(tab.id, { action: 'getVideoInfo' })
-    const video = response?.video
-
-    if (!video) {
-      await showAlert('未能获取视频信息，请刷新页面后重试！')
-      return
-    }
-
-    const collected = await isVideoCollected(video.id)
-    if (collected) {
-      await showAlert('该视频已经收藏过了！')
-      return
-    }
-
-    await addVideo(video)
-    await showAlert('收藏成功！')
-    renderVideos()
-  }
-  catch (error) {
-    console.error('收藏失败:', error)
-    await showAlert('收藏失败，请确保在 Bilibili 视频页面上！')
-  }
-  finally {
-    btn.disabled = false
-  }
-}
-
 async function handleClearAll() {
   const videos = await getVideos()
   if (videos.length === 0) {
@@ -187,6 +149,5 @@ async function handleClearAll() {
   }
 }
 
-document.getElementById('collect-current-btn')?.addEventListener('click', collectCurrentPage)
 document.getElementById('clear-all-btn')?.addEventListener('click', handleClearAll)
 renderVideos()
