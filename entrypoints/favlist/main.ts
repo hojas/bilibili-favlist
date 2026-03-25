@@ -34,6 +34,38 @@ function showAlert(message: string): Promise<void> {
   return showModal(message, [{ text: '确定', primary: true }])
 }
 
+function showConfirm(message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('modal-overlay')!
+    const content = document.getElementById('modal-content')!
+    const buttonsContainer = document.getElementById('modal-buttons')!
+
+    content.textContent = message
+    buttonsContainer.innerHTML = ''
+
+    const cancelBtn = document.createElement('button')
+    cancelBtn.className = 'modal-btn modal-btn-secondary'
+    cancelBtn.textContent = '取消'
+    cancelBtn.addEventListener('click', () => {
+      overlay.classList.add('hidden')
+      resolve(false)
+    })
+
+    const confirmBtn = document.createElement('button')
+    confirmBtn.className = 'modal-btn modal-btn-primary'
+    confirmBtn.textContent = '确定'
+    confirmBtn.addEventListener('click', () => {
+      overlay.classList.add('hidden')
+      resolve(true)
+    })
+
+    buttonsContainer.appendChild(cancelBtn)
+    buttonsContainer.appendChild(confirmBtn)
+
+    overlay.classList.remove('hidden')
+  })
+}
+
 function filterVideos(videos: Video[], keyword: string): Video[] {
   if (!keyword.trim())
     return videos
@@ -85,7 +117,12 @@ function renderVideos() {
     btn.addEventListener('click', async (e) => {
       e.stopPropagation()
       const videoId = (btn as HTMLElement).dataset.videoId
+      const videoTitle = (btn as HTMLElement).dataset.videoTitle
       if (videoId) {
+        const confirmed = await showConfirm(`确定要删除这个视频吗？\n${videoTitle || ''}`)
+        if (!confirmed)
+          return
+
         await removeVideo(videoId)
         allVideos = allVideos.filter(v => v.id !== videoId)
         renderVideos()
@@ -116,7 +153,7 @@ function createVideoCard(video: Video): string {
           </div>
         </div>
       </a>
-      <button class="delete-btn" title="删除" data-video-id="${video.id}">
+      <button class="delete-btn" title="删除" data-video-id="${video.id}" data-video-title="${escapeHtml(video.title)}">
         <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
           <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
         </svg>
