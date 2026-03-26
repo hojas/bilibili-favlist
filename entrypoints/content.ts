@@ -1,4 +1,3 @@
-import { initFavlistBatchButton } from './content/favlist-page'
 import { getCurrentPageType } from './content/utils'
 import { getVideoInfo, initFavButton, reinitFavButton } from './content/video-page'
 
@@ -18,14 +17,9 @@ function initPageContent() {
   const pageType = getCurrentPageType()
   currentPageType = pageType
 
-  switch (pageType) {
-    case 'video':
-      initFavButton()
-      updateCurrentVideoId()
-      break
-    case 'favlist':
-      initFavlistBatchButton()
-      break
+  if (pageType === 'video') {
+    initFavButton()
+    updateCurrentVideoId()
   }
 }
 

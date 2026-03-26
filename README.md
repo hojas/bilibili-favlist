@@ -34,7 +34,6 @@ bilibili-favlist/
 │   ├── background.ts           # 后台脚本，处理图标点击
 │   ├── content/
 │   │   ├── video-page.ts       # 视频页面收藏按钮
-│   │   ├── favlist-page.ts     # B站收藏夹批量收藏
 │   │   └── utils.ts            # 工具函数（toast 等）
 │   └── favlist/                # 收藏列表页面（新标签页）
 │       ├── index.html
