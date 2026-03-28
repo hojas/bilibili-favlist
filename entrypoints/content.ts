@@ -39,11 +39,23 @@ function initMessageListener() {
 
 function initNavigationListener() {
   let lastUrl = window.location.href
+  let urlChangeTimer: ReturnType<typeof setTimeout> | null = null
+
+  const handleUrlChangeDebounced = () => {
+    if (urlChangeTimer) {
+      clearTimeout(urlChangeTimer)
+    }
+    urlChangeTimer = setTimeout(() => {
+      if (window.location.href !== lastUrl) {
+        lastUrl = window.location.href
+        handleUrlChange()
+      }
+    }, 300)
+  }
 
   const observer = new MutationObserver(() => {
     if (window.location.href !== lastUrl) {
-      lastUrl = window.location.href
-      handleUrlChange()
+      handleUrlChangeDebounced()
     }
   })
 
@@ -82,12 +94,12 @@ async function handleUrlChange() {
   const newPageType = getCurrentPageType()
 
   if (newPageType === 'video') {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await new Promise(resolve => setTimeout(resolve, 800))
 
     const video = getVideoInfo()
     const newVideoId = video?.id || null
 
-    if (newVideoId !== currentVideoId) {
+    if (newVideoId && newVideoId !== currentVideoId) {
       currentVideoId = newVideoId
       await reinitFavButton()
     }
